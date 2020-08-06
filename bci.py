@@ -3,8 +3,8 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import socket
 """Reading data into dependant and independant variables"""
-
 dataset = pd.read_csv("Imaginary.csv")
 X = dataset.iloc[:,:-1].values
 y = dataset.iloc[:,-1].values
@@ -23,7 +23,6 @@ y= ohe.fit_transform(y).toarray()
 
 from sklearn.model_selection import train_test_split
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size = 0.3)
-
 
 """scalling the data"""
 
@@ -118,3 +117,15 @@ for n in range(len(loly)):
 
 test_accuracy  = (correctt/len(loly))*100
 training_accuracy  = (correct/len(y_test))*100
+
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+HOST = '192.168.0.30'  # The server's hostname or IP address
+PORT = 2345       # The port used by the server
+
+s.connect((HOST, PORT))
+x = ''
+while (x != 'stop'):
+    x = input('> ')
+    s.send(bytes(x,'utf-8'))
+    x = ''
+        
