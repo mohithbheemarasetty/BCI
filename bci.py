@@ -22,7 +22,7 @@ y= ohe.fit_transform(y).toarray()
 """Splitting data into training and test set"""
 
 from sklearn.model_selection import train_test_split
-X_train,X_test,y_train,y_test = train_test_split(X,y,test_size = 0.3)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
 """scalling the data"""
 
@@ -78,7 +78,7 @@ classifier.add(tf.keras.layers.Dense(units=4, activation='sigmoid'))
 # Part 3 - Training the ANN
 
 # Compiling the ANN
-classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 # Training the ANN on the Training set
 classifier.fit(X_train, y_train, batch_size = 50, epochs = 100)
@@ -87,7 +87,7 @@ correct = 0
 wrong = 0
 for z in range(len(y_test)):
     a = (y_test[z] == y_pred[z])
-    if (np.all(a)):
+    if np.all(a):
         correct = correct + 1
     else:
         
@@ -96,36 +96,35 @@ print(correct+wrong)
 
 test = pd.read_csv("test.csv")
 lol = test.iloc[:,:-1].values
-loly = test.iloc[:,-1].values
+actual = test.iloc[:, -1].values
 labelt = LabelEncoder()
-loly = labelt.fit_transform(loly)
-loly =loly.reshape(-1,1)
+actual = labelt.fit_transform(actual)
+actual = actual.reshape(-1, 1)
 ohet = OneHotEncoder()
-loly= ohet.fit_transform(loly).toarray()
+actual = ohet.fit_transform(actual).toarray()
 #loly = loly[:,1:]
 lol = sctr.transform(lol)
-hehe =  classifier.predict(lol)
-correctt = 0
-wrongt = 0
-for n in range(len(loly)):
-    x = (loly[n] == hehe[n])
-    if (np.all(x)):
-        correctt = correctt + 1
+while 1:
+    prediction = classifier.predict(lol)
+
+    output = 0
+    data = ''
+    for g in range(4):
+        if prediction[g] >= 0.7:
+            output = g
+    if output == 0:
+        data = ''
+    elif output == 1:
+        data = ''
+    elif output == 2:
+        data = ''
     else:
-        
-        wrongt = wrongt +1
+        data = ''
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    IP = '192.168.0.30'  # The IP address of the client
+    PORT = 2345       # The port used by the server
 
-test_accuracy  = (correctt/len(loly))*100
-training_accuracy  = (correct/len(y_test))*100
+    s.connect((IP, PORT))
+    s.send(bytes(data, 'utf-8'))
 
-s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-HOST = '192.168.0.30'  # The server's hostname or IP address
-PORT = 2345       # The port used by the server
 
-s.connect((HOST, PORT))
-x = ''
-while (x != 'stop'):
-    x = input('> ')
-    s.send(bytes(x,'utf-8'))
-    x = ''
-        
