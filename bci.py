@@ -83,16 +83,6 @@ classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accur
 # Training the ANN on the Training set
 classifier.fit(X_train, y_train, batch_size = 50, epochs = 100)
 y_pred = classifier.predict(X_test)
-correct = 0
-wrong = 0
-for z in range(len(y_test)):
-    a = (y_test[z] == y_pred[z])
-    if np.all(a):
-        correct = correct + 1
-    else:
-        
-        wrong = wrong +1
-print(correct+wrong)
 
 test = pd.read_csv("test.csv")
 lol = test.iloc[:,:-1].values
@@ -105,7 +95,8 @@ actual = ohet.fit_transform(actual).toarray()
 #loly = loly[:,1:]
 lol = sctr.transform(lol)
 while 1:
-    prediction = classifier.predict(lol)
+    final = lol
+    prediction = classifier.predict(final)
 
     output = 0
     data = ''
@@ -113,18 +104,16 @@ while 1:
         if prediction[g] >= 0.7:
             output = g
     if output == 0:
-        data = ''
+        data = 'LB'
     elif output == 1:
-        data = ''
+        data = 'LF'
     elif output == 2:
-        data = ''
+        data = 'RB'
     else:
-        data = ''
+        data = 'RF'
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     IP = '192.168.0.30'  # The IP address of the client
     PORT = 2345       # The port used by the server
 
     s.connect((IP, PORT))
     s.send(bytes(data, 'utf-8'))
-
-
