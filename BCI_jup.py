@@ -119,6 +119,7 @@ def predict():
     inlet = StreamInlet(streams[0])
     duration = 0.5
 
+   
     def testLSLSamplingRate():
         start = time.time()
 
@@ -130,6 +131,7 @@ def predict():
                     for sample in samples:
                         writer.writerows(samples)
 
+                        
     def processing_data():
         with open('prediction_data.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
@@ -144,9 +146,11 @@ def predict():
                 print(X)
                 writer.writerow([X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7]])
 
+                  
     processing_data()
 
-test = pd.read_csv("prediction_data.csv") #will be replaced by data extraction code from another defenition
+   
+test = pd.read_csv("prediction_data.csv")
 lol = test.iloc[:, :].values
 labelt = LabelEncoder()
 actual = labelt.fit_transform(actual)
@@ -178,19 +182,11 @@ time.sleep(1.5)
 
 while 1:
     predict()
-    con = int(input("do want to do it again? if so press 1 else press anything else"))
+    con = int(input("do want to do it again? if so press 1 else press anything else")) #just for testing needs to be changed
     if con != 1:
         break
 print("end of simulation")
 
-
-# In[7]:
-
-
-
-
-
-# In[ ]:
 
 
 
