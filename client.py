@@ -1,3 +1,4 @@
+#only needed if running remotely on a raspberry pi
 import socket
 import keypress
 
