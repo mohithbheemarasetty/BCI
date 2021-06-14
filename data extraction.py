@@ -22,8 +22,10 @@ def testLSLSamplingRate():
 def processing_data():
     with open('prediction_data.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
-        for sam in range(0, 20):
+        for sam in range(0, 21):
             testLSLSamplingRate()
+            if sam == 0:
+                continue
             dataset = pd.read_csv("openbci.csv")  # change the name, directory of the file to include the bci file
             raw = dataset.iloc[:, :].values
             print(len(raw))
