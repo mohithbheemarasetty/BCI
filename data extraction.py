@@ -1,3 +1,4 @@
+# not needed anymore as this is bult into the bci_jup code
 import time
 from pylsl import StreamInlet, resolve_stream
 import csv
