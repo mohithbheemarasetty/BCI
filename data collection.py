@@ -10,7 +10,7 @@ duration = 0.1
 count = 0
 
 
-def testLSLSamplingRate(b, d):
+def sample_extract(b, d):
     start = time.time()
     a = 'openbci'
     c = '.csv'
@@ -24,13 +24,13 @@ def testLSLSamplingRate(b, d):
                 writer.writerows(samples)
 
 
-def processing_data(b):
+def processing_data(b, z):
     a = 'MI_data'
     c = '.csv'
-    with open(a+str(b)+c, 'w', newline='') as csvfile:  # the name for the final data set
+    with open(a+c, 'a', newline='') as csvfile:  # the name for the final data set
         writer = csv.writer(csvfile, delimiter=',')
-        for sam in range(0, 6):
-            testLSLSamplingRate(b, sam)
+        for sam in range(0, 51):
+            sample_extract(b, sam)
             if sam == 0:
                 continue
             dataset = pd.read_csv(file)  # change the name, directory of the file to include the bci file
@@ -40,18 +40,30 @@ def processing_data(b):
             for y in range(len(raw[0])):
                 X.append(np.average(raw[:, y]))
             print(X)
-            writer.writerow([X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7]])
+            writer.writerow([X[0], X[1], X[2], X[3], X[4], X[5], X[6], X[7], z])
 
 
+cur = time.time()
+leg = 'L'
+hand = 'H'
+idle = 'I'
 while 1:
-    print('data set no :', count)
     print("relax for 2 seconds")
-    time.sleep(2)
-    print("imagine moving ur right arm")
-    processing_data(count)
-    con = int(input("do want to do it again? if so press 1 else press anything else"))
-    if con != 1:
+    time.sleep(4)
+
+    if time.time() <= cur + 400:
+        print("imagine moving ur legs")
+        time.sleep(1)
+        processing_data(count, leg)
+    if cur + 800 >= time.time() > cur + 400:
+        print("imagine moving ur hand")
+        time.sleep(1)
+        processing_data(count, hand)
+    if cur + 1200 >= time.time() > cur + 800:
+        print("do nothing")
+        time.sleep(1)
+        processing_data(count, idle)
+    if time.time() > cur + 1200:
+        print("end of data collection")
         break
     count += 1
-
-print("end of dataset collection")
