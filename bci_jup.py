@@ -1,3 +1,4 @@
+import keras.optimizers
 import tensorflow as tf
 import keypress
 import numpy as np
@@ -6,47 +7,87 @@ import time
 import csv
 from pylsl import StreamInlet, resolve_stream
 import statistics
+import sklearn.metrics as met
 
-dataset = pd.read_csv("MI_data.csv")
-X = dataset.iloc[:, :8].values
+dataset = pd.read_csv("MI_data_6.csv")
+X = dataset.iloc[:, :24].values
 y = dataset.iloc[:, -1].values
-
-from sklearn.preprocessing import OneHotEncoder,LabelEncoder
+print(y[400], y[3000], y[5000])
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 label = LabelEncoder()
 y = label.fit_transform(y)
-y =y.reshape(-1,1)
+y = y.reshape(-1, 1)
 ohe = OneHotEncoder()
-y= ohe.fit_transform(y).toarray()
-
+y = ohe.fit_transform(y).toarray()
+print(y[400], y[3000], y[5000])
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-
-from sklearn.preprocessing import StandardScaler
-sctr = StandardScaler()
-X_train = sctr.fit_transform(X_train)
-scte = StandardScaler()
-X_test = scte.fit_transform(X_test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 classifier = tf.keras.models.Sequential()
 
-classifier.add(tf.keras.layers.Dense(units=10, activation='relu'))
+classifier.add(tf.keras.layers.Dense(units=29, activation='sigmoid'))
 
-classifier.add(tf.keras.layers.Dense(units=10, activation='relu'))
+classifier.add(tf.keras.layers.Dense(units=29, activation='sigmoid'))
 
-classifier.add(tf.keras.layers.Dense(units=2, activation='softmax'))
+classifier.add(tf.keras.layers.Dense(units=29, activation='sigmoid'))
 
-classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+classifier.add(tf.keras.layers.Dense(units=29, activation='sigmoid'))
 
-classifier.fit(X_train, y_train, batch_size=50, epochs=25)
+classifier.add(tf.keras.layers.Dense(units=29, activation='sigmoid'))
+
+#classifier.add(tf.keras.layers.Dropout(0.9))
+
+classifier.add(tf.keras.layers.Dense(units=3, activation='softmax'))
+
+classifier.compile(optimizer='nadam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+classifier.fit(X_train, y_train, batch_size=50, epochs=200)
 y_pred = classifier.predict(X_test)
+final = []
+tes = []
+con = 0
+for d in range(len(y_pred)):
+    final.append(np.argmax(y_pred[d]))
+for d in range(len(y_test)):
+    tes.append(np.argmax(y_test[d]))
+for d in range(len(final)):
+    if final[d] == tes[d]:
+        con += 1
+print("test accuracy is", (con*100)/len(final))
+test = pd.read_csv("MI_data_5.csv")
+lol = test.iloc[:, :24].values
+y2 = dataset.iloc[:, -1].values
+label2 = LabelEncoder()
+y2 = label2.fit_transform(y2)
+y2 = y2.reshape(-1, 1)
+ohe2 = OneHotEncoder()
+y2 = ohe2.fit_transform(y2).toarray()
+prediction = classifier.predict(lol)
+final = []
+tes = []
+con = 0
+for d in range(len(prediction)):
+    final.append(np.argmax(prediction[d]))
+for d in range(len(y2)):
+    tes.append(np.argmax(y2[d]))
+for d in range(len(final)):
+    if final[d] == tes[d]:
+        con += 1
+print("test accuracy is", (con*100)/len(final))
+matrix = met.confusion_matrix(prediction.argmax(axis=1), y2.argmax(axis=1))
+print(matrix)
 
+time.sleep(5)
 print("starting...")
 streams = resolve_stream('type', 'EEG')
 inlet = StreamInlet(streams[0])
-duration = 0.5
+duration = 0.1
+
 
 def predictit():
+    print("relax")
+    time.sleep(3)
+
     def sample_extract():
         start = time.time()
         with open('openbci.csv', 'w', newline='') as csvfile:
@@ -59,7 +100,7 @@ def predictit():
     def processing_data():
         with open('prediction_data.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            for sam in range(0, 21):  # increase the range to get more recordings
+            for sam in range(0, 51):  # increase the range to get more recordings
                 sample_extract()
                 if sam == 0:
                     continue
@@ -67,32 +108,41 @@ def predictit():
                 raw = raw_dataset.iloc[:, :].values
                 print(len(raw))
                 p = []
+                q = []
+                av = []
                 for r in range(len(raw[0])):
-                    p.append(np.average(raw[:, r]))
+                    av.append(np.average(raw[:, r]))
+                    p.append(max(raw[:, r]))
+                    q.append(min(raw[:, r]))
                 print(p)
-                writer.writerow([p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]])
+                writer.writerow([p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+                                 q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7],
+                                 av[0], av[1], av[2], av[3], av[4], av[5], av[6], av[7]])
 
     processing_data()
 
     test = pd.read_csv("prediction_data.csv")
     lol = test.iloc[:, :].values
-    sctt = StandardScaler()
-    lol = sctt.fit_transform(lol)
+    # lol = sctt.fit_transform(lol)
     prediction = classifier.predict(lol)
-    final = []
+    final_sim = []
     for d in range(len(prediction)):
-        final.append(np.argmax(prediction[d]))
-    ree = statistics.mode(final)
+        final_sim.append(np.argmax(prediction[d]))
+    ree = statistics.mode(final_sim)
+    print(final_sim)
     if ree == 0:
-        keypress.press('d')
+        print("Idle, d")
+        keypress.pres('d')
     elif ree == 1:
-        keypress.press('a')
+        print("hand, a")
+        keypress.pres('a')  # needs to be changed to do nothing
     elif ree == 2:
-        keypress.press('w')
-    elif ree == 3:
-        keypress.press('s')
+        print("Leg, w")
+        keypress.pres('w')
 
 
 while 1:
     predictit()
-
+    cont = input("enter 1 to continue or any other number to stop")
+    if cont != "1":
+        break
